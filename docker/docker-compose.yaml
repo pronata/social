@@ -1,0 +1,48 @@
+version: '3.9'
+
+services:
+  social_nginx:
+    image: nginx:latest
+    restart: always
+    ports:
+      - '8083:80'
+    volumes:
+      - ./../:/usr/share/nginx/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./../var/log/nginx:/var/log/nginx
+    depends_on:
+      - social_php
+
+  social_db:
+    container_name: social_db
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: smth
+      POSTGRES_DB: social
+      POSTGRES_USER: social
+    ports:
+      - "15432:5432"
+    volumes:
+      - social_db_data:/var/lib/postgresql/data:rw
+
+  social_php:
+    build:
+      context: ./php-fpm
+      args:
+        UID: ${UID}
+        GID: ${GID}
+    expose:
+      - 9000
+    restart: always
+    volumes:
+      - ./..:/usr/share/nginx/html
+    working_dir: /usr/share/nginx/html
+    user: ${UID}:${GID}
+    depends_on:
+      - social_db
+
+volumes:
+  social_db_data:
+
+
