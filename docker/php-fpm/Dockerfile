@@ -1,7 +1,7 @@
-FROM php:8.1-fpm
+FROM php:8.3-fpm
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
-    apt-get install -y --no-install-recommends libssl-dev zlib1g-dev curl git unzip netcat libxml2-dev libpq-dev libzip-dev && \
+    apt-get install -y --no-install-recommends libssl-dev zlib1g-dev curl git unzip netcat-traditional libxml2-dev libpq-dev libzip-dev && \
     pecl install apcu && \
     docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql && \
     docker-php-ext-install -j$(nproc) zip opcache intl pdo_pgsql pgsql && \
@@ -10,6 +10,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
 
 COPY --from=composer:2.5.4 /usr/bin/composer /usr/bin/composer
 RUN composer --version
+
+RUN pecl install xdebug-3.3.1 && docker-php-ext-enable xdebug
 
 ARG UID
 ARG GID
