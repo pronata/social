@@ -56,7 +56,12 @@
   },
   "require-dev": {
     "ext-xdebug": "^3.3",
-    "symfony/maker-bundle": "^1.48"
+    "dama/doctrine-test-bundle": "^7.3",
+    "phpunit/phpunit": "^9.5",
+    "symfony/browser-kit": "6.2.*",
+    "symfony/css-selector": "6.2.*",
+    "symfony/maker-bundle": "^1.48",
+    "symfony/phpunit-bridge": "^7.0"
   },
   "scripts": {
     "auto-scripts": {

@@ -69,6 +69,31 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
         return $user;
     }
 
+    /**
+     * Поиск по частичному совпадению имени и фамилии.
+     *
+     * @return array|User
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function findByFirstNameAndSecondName(string $firstName, string $secondName): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = 'SELECT u.id, u.first_name, u.second_name, u.birth_date, u.biography, u.city
+                FROM social_user u
+                WHERE LOWER(u.first_name) LIKE LOWER(:firstName)
+                AND LOWER(u.second_name) LIKE LOWER(:secondName)';
+
+        $stmt = $conn->prepare($sql);
+
+        $resultSet = $stmt->executeQuery([
+            'firstName' => $firstName,
+            'secondName' => $secondName,
+        ]);
+
+        return $resultSet->fetchAllAssociative();
+    }
+
     public function find($id, $lockMode = null, $lockVersion = null): ?User
     {
         return $this->loadUserByIdentifier($id);
