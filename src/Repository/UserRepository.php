@@ -82,7 +82,7 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
         $sql = 'SELECT u.id, u.first_name, u.second_name, u.birth_date, u.biography, u.city
                 FROM social_user u
                 WHERE LOWER(u.first_name) LIKE LOWER(:firstName)
-                AND LOWER(u.second_name) LIKE LOWER(:secondName)';
+                AND LOWER(u.second_name) LIKE LOWER(:secondName) ORDER BY u.id';
 
         $stmt = $conn->prepare($sql);
 
