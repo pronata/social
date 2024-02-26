@@ -33,6 +33,9 @@ class SearchUserController extends AbstractController
 
         $users = $userRepository->findByFirstNameAndSecondName($firstName, $lastName);
 
-        return $this->json($users);
+        $response = new JsonResponse($users);
+        $response->setEncodingOptions(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        return $response;
     }
 }

@@ -87,8 +87,8 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
         $stmt = $conn->prepare($sql);
 
         $resultSet = $stmt->executeQuery([
-            'firstName' => $firstName,
-            'secondName' => $secondName,
+            'firstName' => $this->wrapAsPartSearch($firstName),
+            'secondName' => $this->wrapAsPartSearch($secondName),
         ]);
 
         return $resultSet->fetchAllAssociative();
@@ -97,5 +97,15 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
     public function find($id, $lockMode = null, $lockVersion = null): ?User
     {
         return $this->loadUserByIdentifier($id);
+    }
+
+    /**
+     * Делает UNESCAPE символов % и _ для значения LIKE параметра,
+     * чтобы символы не воспринимались как подстановочные знаки (wildcard)
+     * для LIKE выражения.
+     */
+    private function wrapAsPartSearch(string $value): string
+    {
+        return sprintf('%s%%', addcslashes($value, '%_'));
     }
 }

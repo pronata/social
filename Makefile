@@ -11,3 +11,11 @@ up:
 # make composer-req cmd="phpunit/phpunit --dev"
 composer-req:
 	cd docker && docker-compose run --rm social_php composer req $(cmd)
+
+db-reset-test:
+	@echo "Дропаю тестовую БД"
+	cd docker && docker-compose exec social_php php bin/console --env=test doctrine:database:drop --force --if-exists --no-debug
+	@echo "Создаю тестовую БД"
+	cd docker && docker-compose exec social_php php bin/console --env=test doctrine:database:create --quiet --no-debug
+	@echo "Применяю схему тестовой БД"
+	cd docker && docker-compose exec social_php php bin/console --env=test doctrine:schema:create --quiet --no-debug
