@@ -26,6 +26,59 @@ services:
     volumes:
       - social_db_data:/var/lib/postgresql/data:rw
 
+  pgmaster:
+    container_name: pgmaster
+    image: postgres:15
+    command: "postgres -c config_file=/config/postgresql.conf"
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: smth
+      POSTGRES_DB: social
+      POSTGRES_USER: social
+      PGDATA: "/data"
+    ports:
+      - "15433:5432"
+    volumes:
+      - ./pgmaster/config:/config
+      - social_pg_master:/data:rw
+      - social_pg_backup:/postgres-wal-dir
+    networks:
+      - pgnet
+
+  pgslave:
+    container_name: pgslave
+    image: postgres:15
+    command: "postgres -c config_file=/config/postgresql.conf"
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: smth
+      POSTGRES_USER: social
+      PGDATA: "/data"
+    ports:
+      - "15434:5432"
+    volumes:
+      - ./pgslave/config:/config
+      - social_pg_backup:/data:rw
+    networks:
+      - pgnet
+
+  pgasyncslave:
+    container_name: pgasyncslave
+    image: postgres:15
+    command: "postgres -c config_file=/config/postgresql.conf"
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: smth
+      POSTGRES_USER: social
+      PGDATA: "/data"
+    ports:
+      - "15435:5432"
+    volumes:
+      - ./pgasyncslave/config:/config
+      - social_pg_backup:/data:rw
+    networks:
+      - pgnet
+
   social_php:
     build:
       context: ./php-fpm
@@ -46,5 +99,13 @@ services:
 
 volumes:
   social_db_data:
+  social_pg_master:
+  social_pg_backup:
+  social_pg_slave:
+  social_pg_async_slave:
 
+networks:
+  pgnet:
+    name: pgnet
+    external: true
 

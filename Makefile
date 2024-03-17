@@ -19,3 +19,19 @@ db-reset-test:
 	cd docker && docker-compose exec social_php php bin/console --env=test doctrine:database:create --quiet --no-debug
 	@echo "Применяю схему тестовой БД"
 	cd docker && docker-compose exec social_php php bin/console --env=test doctrine:schema:create --quiet --no-debug
+
+pg_basebackup:
+#	docker-compose run --rm social_pgmaster
+#	docker exec -it synapse-db-1 pg_basebackup -h /sockets -U synapse -D /tmp/pgreplica
+#	docker exec -it pgmaster pg_basebackup -h pgmaster -D /pgslave -U replicator -v -P --wal-method=stream
+#	docker exec -it pgmaster pg_basebackup -h pgmaster -D /pgslave -U replicator -v -P --wal-method=stream
+	#cd docker && docker compose run --rm pgmaster bash -c 'create role replicator with login replication password \'pass\''
+# create role replicator with login replication password 'pass';
+	docker exec -it pgmaster /bin/bash -c 'pg_basebackup -h pgmaster -D /postgres-wal-dir -U replicator -v -P --wal-method=stream'
+
+psql:
+	#cd docker && docker compose exec pgmaster bash
+	docker exec -it pgmaster psql -U social
+
+down-volumes:
+	cd docker && docker-compose down --volumes
