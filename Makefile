@@ -4,15 +4,16 @@ confirmation_prompt:
 
 up:
 	cd docker && docker-compose build \
-	&& docker-compose up -d \
-	&& docker-compose run --rm social_php composer install \
-	&& docker-compose run --rm social_php bin/console doctrine:migrations:migrate --no-interaction
+	&& docker-compose up -d
 
 # make composer-req cmd="phpunit/phpunit --dev"
 composer-req:
 	cd docker && docker-compose run --rm social_php composer req $(cmd)
 
-db-reset-test:
+composer-install:
+	cd docker && docker-compose run --rm social_php composer install
+
+db-recreate-test:
 	@echo "Дропаю тестовую БД"
 	cd docker && docker-compose exec social_php php bin/console --env=test doctrine:database:drop --force --if-exists --no-debug
 	@echo "Создаю тестовую БД"
@@ -20,18 +21,30 @@ db-reset-test:
 	@echo "Применяю схему тестовой БД"
 	cd docker && docker-compose exec social_php php bin/console --env=test doctrine:schema:create --quiet --no-debug
 
-pg_basebackup:
-#	docker-compose run --rm social_pgmaster
-#	docker exec -it synapse-db-1 pg_basebackup -h /sockets -U synapse -D /tmp/pgreplica
-#	docker exec -it pgmaster pg_basebackup -h pgmaster -D /pgslave -U replicator -v -P --wal-method=stream
-#	docker exec -it pgmaster pg_basebackup -h pgmaster -D /pgslave -U replicator -v -P --wal-method=stream
-	#cd docker && docker compose run --rm pgmaster bash -c 'create role replicator with login replication password \'pass\''
-# create role replicator with login replication password 'pass';
-	docker exec -it pgmaster /bin/bash -c 'pg_basebackup -h pgmaster -D /postgres-wal-dir -U replicator -v -P --wal-method=stream'
+db-recreate:
+	cd docker && docker-compose exec social_php php bin/console doctrine:database:drop --force --if-exists --no-debug \
+	&& docker-compose exec social_php php bin/console doctrine:database:create --quiet --no-debug
+	$(MAKE) db-migrate
+	cd docker && docker-compose exec social_php php bin/console doctrine:schema:validate --no-debug
 
-psql:
-	#cd docker && docker compose exec pgmaster bash
-	docker exec -it pgmaster psql -U social
+db-generate:
+	@echo "Создаю миграцию"
+	cd docker && docker-compose run --rm social_php php bin/console doctrine:migrations:generate --no-interaction --no-debug
+
+db-diff:
+	@echo "Делаю diff БД c миграциями"
+	cd docker && docker-compose run --rm social_php php bin/console doctrine:migrations:diff --no-interaction --no-debug
+
+db-migrate:
+	@echo "Делаю diff БД c миграциями"
+	cd docker && docker-compose run --rm social_php php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --no-debug
 
 down-volumes:
 	cd docker && docker-compose down --volumes
+
+pg_basebackup:
+	docker exec -it social_db /bin/bash -c 'pg_basebackup -h social_db -D /postgres-wal-dir -U replicator -v -P --wal-method=stream'
+
+psql:
+	#cd docker && docker compose exec pgmaster bash
+	docker exec -it pgasyncslave psql
