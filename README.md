@@ -8,3 +8,5 @@
 6. PUT http://localhost:8083/friend/set/{user_id}
 7. PUT http://localhost:8083/friend/delete/{user_id}
 8. GET http://localhost:8083/post/feed
+9. POST http://localhost:8083/dialog/{user_id}/send
+10. GET http://localhost:8083/dialog/{userId}/list
