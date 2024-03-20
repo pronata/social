@@ -135,7 +135,6 @@ class PostControllerTest extends WebTestCase
 
         $this->getEntityManager()->clear();
 
-        $posts = $this->getPostRepository()->findAll();
         $this->client->loginUser($user);
 
         $this->client->request(
@@ -166,6 +165,50 @@ class PostControllerTest extends WebTestCase
             ],
             json_decode($response->getContent(), true)
         );
+    }
+
+    public function testCreatePost()
+    {
+        $user = new User();
+        $user->setBiography('fdmdfk');
+        $user->setFirstName('Иван');
+        $user->setSecondName('Иванов');
+        $birthDate = new BirthDate('1998-01-02');
+        $user->setBirthDate($birthDate);
+        $user->setCity('London');
+
+        $hashedPassword = $this->getPasswordHasher()->hashPassword(
+            $user,
+            'abc'
+        );
+
+        $user->setPassword($hashedPassword);
+
+        $this->getEntityManager()->persist($user);
+
+        $this->client->loginUser($user);
+
+        $postMessage = 'Какой сегодня день?';
+
+        $this->client->request(
+            Request::METHOD_POST,
+            '/post/create',
+            content: json_encode(
+                [
+                    'text' => $postMessage
+                ]
+            )
+        );
+
+        $this->assertResponseIsSuccessful();
+
+        $response = $this->client->getResponse();
+
+        $this->assertSame('Успешно создан пост', json_decode($response->getContent()));
+
+        $posts = $this->getPostRepository()->findAll();
+
+        $this->assertCount(1, $posts);
     }
 
     protected function getEntityManager(): EntityManagerInterface

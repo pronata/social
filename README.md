@@ -10,3 +10,4 @@
 8. GET http://localhost:8083/post/feed
 9. POST http://localhost:8083/dialog/{user_id}/send
 10. GET http://localhost:8083/dialog/{userId}/list
+11. POST http://localhost:8083/post/create

@@ -47,6 +47,25 @@ class PostRepository extends ServiceEntityRepository
         return $resultSet->fetchAllAssociative();
     }
 
+    /**
+     * Создание поста.
+     */
+    public function addPost(Uuid $authorId, string $text, \DateTimeImmutable $createdAt): void
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = 'INSERT INTO post ("id", "author_user_id", "text", created_at) VALUES (:id, :authorId, :text, :createdAt)';
+
+        $stmt = $conn->prepare($sql);
+
+        $stmt->executeQuery([
+            'id' => Uuid::v4(),
+            'authorId' => $authorId,
+            'text' => $text,
+            'createdAt' => $createdAt->format(DATE_ATOM)
+        ]);
+    }
+
     public function save(Post $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
