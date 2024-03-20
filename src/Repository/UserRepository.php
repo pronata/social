@@ -94,6 +94,77 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
         return $resultSet->fetchAllAssociative();
     }
 
+    /**
+     * Добавление друга.
+     */
+    public function addFriend(Uuid $userId, Uuid $friendId): void
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = 'INSERT INTO friend (user_id, friend_id) VALUES (:userId, :friendId)';
+
+        $stmt = $conn->prepare($sql);
+
+        $stmt->executeQuery([
+            'userId' => (string) $userId,
+            'friendId' => (string) $friendId
+        ]);
+    }
+
+    /**
+     * Удаление друга.
+     */
+    public function deleteFriend(Uuid $userId, Uuid $friendId): void
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = 'DELETE FROM friend f WHERE f.user_id=:userId AND f.friend_id=:friendId';
+
+        $stmt = $conn->prepare($sql);
+
+        $stmt->executeQuery([
+            'userId' => $userId,
+            'friendId' => $friendId
+        ]);
+    }
+
+    /**
+     * Поиск друзей.
+     *
+     * @return User[]
+     */
+    public function findFriends(Uuid $userId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = 'SELECT f.friend_id as friend_id, u.first_name as first_name, u.second_name as second_name, u.city as city, u.biography as biography, u.birth_date as birth_date, u.password as password
+                FROM friend f
+                LEFT JOIN social_user u ON f.friend_id=u.id
+                WHERE f.user_id = :userId ORDER BY f.friend_id';
+
+        $stmt = $conn->prepare($sql);
+
+        $resultSet = $stmt->executeQuery(['userId' => $userId]);
+
+        $userArray = $resultSet->fetchAllAssociative();
+
+        return array_map(
+            function(array $user) {
+                $friend = new User();
+                return $friend
+                    ->setId(new Uuid($user['friend_id']))
+                    ->setFirstName($user['first_name'])
+                    ->setSecondName($user['second_name'])
+                    ->setCity($user['city'])
+                    ->setBiography($user['biography'])
+                    ->setBirthDate(new BirthDate(\DateTimeImmutable::createFromFormat('Y-m-d H:i:s',
+                        $user['birth_date'])->format('Y-m-d')))
+                    ->setPassword($user['password']);
+            },
+            $userArray
+        );
+    }
+
     public function find($id, $lockMode = null, $lockVersion = null): ?User
     {
         return $this->loadUserByIdentifier($id);

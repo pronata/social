@@ -22,6 +22,9 @@ class Post
     #[ORM\Column(type: UuidType::NAME)]
     private Uuid $authorUserId;
 
+    #[ORM\Column]
+    private \DateTimeImmutable $createdAt;
+
     public function getId(): Uuid
     {
         return $this->id;
@@ -47,5 +50,22 @@ class Post
     {
         $this->authorUserId = $authorUserId;
         return $this;
+    }
+
+    public function setId(Uuid $id): Post
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): Post
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
     }
 }
